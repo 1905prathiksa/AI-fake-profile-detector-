@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Fake Profile Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f2f5;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #1f2937;
+      color: white;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .sidebar a {
+      color: #cbd5e1;
+      text-decoration: none;
+      margin: 10px 0;
+      display: block;
+      padding: 10px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .sidebar a:hover {
+      background-color: #374151;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      color: #111827;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 16px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      resize: vertical;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #3b82f6;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    #resultText {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .auth-section {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .auth-section h2 {
+      margin-bottom: 20px;
+      color: #111827;
+    }
+
+    .auth-section input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .auth-section .toggle {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .auth-section .toggle a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<div id="authContainer">
+  <div class="auth-section" id="signupBox">
+    <h2>Create Account</h2>
+    <input type="text" placeholder="Full Name" required>
+    <input type="email" placeholder="Email" required>
+    <input type="password" placeholder="Password" required>
+    <button onclick="showDashboard()">Sign Up</button>
+    <div class="toggle">Already registered? <a href="#" onclick="toggleAuth('login')">Login</a></div>
+  </div>
+
+  <div class="auth-section" id="loginBox" style="display:none;">
+    <h2>Login</h2>
+    <input type="email" placeholder="Email" required>
+    <input type="password" placeholder="Password" required>
+    <button onclick="showDashboard()">Login</button>
+    <div class="toggle">New here? <a href="#" onclick="toggleAuth('signup')">Sign Up</a></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="container" id="dashboard" style="display:none;">
+  <aside class="sidebar">
+    <h2>Fake Profile AI</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Detection</a>
+    <a href="#">History</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </aside>
+
+  <main class="main">
+    <div class="card">
+      <h2>Detect Fake Profile</h2>
+      <textarea id="profileInput" placeholder="Paste profile data here..."></textarea>
+      <button onclick="detectProfile()">Analyze</button>
+      <div id="resultText"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function toggleAuth(type) {
+    if (type === 'signup') {
+      document.getElementById('signupBox').style.display = 'block';
+      document.getElementById('loginBox').style.display = 'none';
+    } else {
+      document.getElementById('signupBox').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+    }
+  }
+
+  function showDashboard() {
+    document.getElementById('authContainer').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+  }
+
+  function logout() {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('authContainer').style.display = 'block';
+    toggleAuth('login');
+  }
+
+  async function detectProfile() {
+    const input = document.getElementById("profileInput").value;
+    const resultText = document.getElementById("resultText");
+
+    if (!input.trim()) {
+      resultText.textContent = "Please enter some profile data.";
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/profile/detect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(input)
+      });
+      const result = await res.text();
+      resultText.textContent = result;
+    } catch (e) {
+      console.error(e);
+      resultText.textContent = "Something went wrong. Try again.";
+    }
+  }
+</script>
+
+</body>
+</html>
